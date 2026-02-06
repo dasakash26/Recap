@@ -16,14 +16,6 @@ import { FirstChatCard } from "./empty-state/first-chat-card";
 import { PromptChips } from "./empty-state/prompt-chips";
 import { NewFolderDialog } from "./sidebar/new-folder-dialog";
 
-type Thread = {
-  id: string;
-  name: string;
-  folderName?: string;
-  folderId: string;
-  updatedAt: string | number | Date;
-};
-
 const SUGGESTION_CHIPS = [
   "Summarize this document",
   "Find key insights",
@@ -111,10 +103,10 @@ export default function EmptyState() {
                 )}
 
                 {/* Prompt Chips */}
-                <PromptChips
+                {hasNoThreads && <PromptChips
                   hasNoThreads={hasNoThreads}
                   prompts={SUGGESTION_CHIPS}
-                />
+                />}
               </div>
             </div>
           </motion.div>
