@@ -13,6 +13,7 @@ system_prompt = (
     "CRITICAL: When you see MCQs/exercises in the context, SOLVE them using your knowledge. "
     "Do NOT say 'documents don't contain answers'—that's expected. YOU are supposed to answer using your intelligence.\n\n"
     "Answer questions, solve problems, and provide explanations. Never refuse tasks you're capable of.\n\n"
+    "Before Answering that you dont have context, retrieve documents, make tool call, check context, and then answer."
 )
 
 router_prompt = (

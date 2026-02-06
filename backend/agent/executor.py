@@ -6,7 +6,11 @@ from langgraph.graph.state import RunnableConfig
 from langgraph.prebuilt import ToolNode
 from services.vector_db import VectorDB
 from langchain.chat_models import init_chat_model
-from .prompts import get_rag_system_prompt, get_router_system_prompt, get_query_reformulation_prompt
+from .prompts import (
+    get_rag_system_prompt,
+    get_router_system_prompt,
+    get_query_reformulation_prompt,
+)
 
 from langgraph.graph import END
 from langgraph.prebuilt import tools_condition
@@ -23,19 +27,23 @@ async def retrieve(query: str, config: RunnableConfig):
 
     folder_id = config.get("configurable", {}).get("folder_id")
     filter_metadata = {"folder_id": folder_id} if folder_id else None
-    
+
     reformulation_prompt = get_query_reformulation_prompt(query)
     reformulated = await llm.ainvoke(reformulation_prompt)
-    search_query = reformulated.content.strip()
-    
+    search_query = reformulated.content
+
     retrieved_docs = await vector_store.query(search_query, filter_metadata, top_k=10)
     serialized_chunks = []
     for idx, doc in enumerate(retrieved_docs, start=1):
-        filename = doc.metadata.get('filename') or doc.metadata.get('source', 'Unknown Source')
+        filename = doc.metadata.get("filename") or doc.metadata.get(
+            "source", "Unknown Source"
+        )
         header = f"> Document {idx} {filename}\n"
         serialized_chunks.append(header + doc.page_content + "\n")
 
-    logger.info(f"Retrieved {len(retrieved_docs)} documents for query: '{query}' (reformulated: '{search_query}')")
+    logger.info(
+        f"Retrieved {len(retrieved_docs)} documents for query: '{query}' (reformulated: '{search_query}')"
+    )
 
     serialized = "\n\n".join(serialized_chunks)
     return serialized, retrieved_docs
@@ -54,7 +62,7 @@ tools = ToolNode([retrieve])
 
 async def generate(state: MessagesState):
     """Generate answer to the question."""
-    
+
     recent_tool_messages = []
     for message in reversed(state["messages"]):
         if message.type == "tool":
@@ -75,8 +83,10 @@ async def generate(state: MessagesState):
 
     prompt: list[BaseMessage] = [system_message_content] + conversation_messages
 
-    logger.info(f"Generating response with {len(tool_messages)} tool messages and {len(conversation_messages)} conversation messages")
-    
+    logger.info(
+        f"Generating response with {len(tool_messages)} tool messages and {len(conversation_messages)} conversation messages"
+    )
+
     response = await llm.ainvoke(prompt)
     logger.info(f"Generated response: {response.content[:100]}...")
     return {"messages": [response]}
@@ -95,5 +105,3 @@ agent_builder.add_conditional_edges(
     },
 )
 agent_builder.add_edge("tools", "generate").add_edge("generate", END)
-
-
